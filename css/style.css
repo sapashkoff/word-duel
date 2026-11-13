@@ -1,0 +1,1007 @@
+/* Скрытие экранов: должно быть в самом начале */
+.hidden {
+  display: none !important;
+}
+
+/* =========================================================
+   ЦВЕТА: меняй только здесь, остальной файл трогать не нужно
+   (если ты менял палитру, вставь свои значения сюда снова)
+   ========================================================= */
+:root {
+  --bg:            #1b1b2f;
+  --text:          #ffffff;
+  --text-dim:      rgba(255, 255, 255, 0.65);
+
+  --btn:           #3a3a5c;
+  --btn-pressed:   #4b4b78;
+  --correct:       #2ea44f;
+  --wrong:         #d64550;
+
+  --hp-track:      #33334d;
+  --hp-player-1:   #2ec4b6;
+  --hp-player-2:   #7ae582;
+  --hp-enemy-1:    #ff4d6d;
+  --hp-enemy-2:    #ff8fa3;
+
+  --timer:         #ffd166;
+  --star-on:       #ffd166;   /* заполненная звезда */
+  --star-off:      rgba(255, 255, 255, 0.2); /* пустая звезда */
+  --overlay-bg:    rgba(0, 0, 0, 0.75);
+  --accent:        #ffd166;
+  --accent-text:   #1b1b2f;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Общие правила для обоих экранов */
+.screen {
+  height: 100vh;
+  height: 100dvh;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+/* =========================================================
+   ЭКРАН 1: КАРТА УРОВНЕЙ
+   ========================================================= */
+#map-screen {
+  padding: calc(24px + env(safe-area-inset-top)) 16px
+           calc(16px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  overflow-y: auto;
+}
+
+#map-title {
+  font-size: 34px;
+  font-weight: 800;
+}
+
+#map-subtitle {
+  font-size: 15px;
+  color: var(--text-dim);
+}
+
+#levels-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.level-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 14px 0;
+  color: var(--text);
+  background: var(--btn);
+  border: 2px solid transparent;
+  border-radius: 16px;
+  cursor: pointer;
+}
+
+.level-num {
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.level-stars {
+  font-size: 18px;
+  letter-spacing: 2px;
+  line-height: 1;
+}
+
+.star.on  { color: var(--star-on); }
+.star.off { color: var(--star-off); }
+
+.level-btn.current {
+  border-color: var(--accent);
+}
+
+.level-btn.locked {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.level-btn:not(.locked):active {
+  transform: scale(0.95);
+}
+
+#weak-words {
+  width: 100%;
+  margin-top: 8px;
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--hp-track);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-dim);
+}
+
+#weak-words b {
+  color: var(--text);
+}
+
+#reset-btn {
+  margin-top: auto;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 13px;
+  text-decoration: underline;
+  cursor: pointer;
+  padding-top: 12px;
+}
+
+/* =========================================================
+   ЭКРАН 2: БОЙ
+   ========================================================= */
+#game {
+  display: flex;
+  flex-direction: column;
+  padding: calc(8px + env(safe-area-inset-top)) 16px
+           calc(16px + env(safe-area-inset-bottom));
+}
+
+#topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 36px;
+  margin-bottom: 8px;
+}
+
+#back-btn {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 15px;
+  cursor: pointer;
+  padding: 6px 0;
+}
+
+#level-label {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-dim);
+}
+
+/* Верхняя половина: арена */
+#arena {
+  flex: 1;
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.fighter {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+}
+
+.fighter-name {
+  font-size: 14px;
+  color: var(--text-dim);
+}
+
+.hp-bar {
+  width: 100%;
+  height: 16px;
+  background: var(--hp-track);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.hp-fill {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, var(--hp-enemy-1), var(--hp-enemy-2));
+  border-radius: 8px;
+  transition: width 0.4s ease;
+}
+
+#player-hp {
+  background: linear-gradient(90deg, var(--hp-player-1), var(--hp-player-2));
+}
+
+.character {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 72px;
+  line-height: 1;
+}
+
+.vs {
+  align-self: center;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-dim);
+}
+
+.character.hit {
+  animation: shake 0.4s;
+}
+
+@keyframes shake {
+  0%   { transform: translateX(0); }
+  20%  { transform: translateX(-10px) scale(0.92); }
+  40%  { transform: translateX(10px)  scale(0.92); }
+  60%  { transform: translateX(-6px); }
+  80%  { transform: translateX(6px); }
+  100% { transform: translateX(0); }
+}
+
+/* Нижняя половина: вопрос и ответы */
+#panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 16px;
+}
+
+#question-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 6px;
+}
+
+#mode-label {
+  font-size: 14px;
+  color: var(--text-dim);
+}
+
+#question-word {
+  font-size: 42px;
+  font-weight: 700;
+}
+
+#status {
+  height: 22px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+
+#timer-bar {
+  width: 100%;
+  height: 6px;
+  background: var(--hp-track);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 6px;
+}
+
+#timer-fill {
+  height: 100%;
+  width: 100%;
+  background: var(--timer);
+}
+
+#answers {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-auto-rows: 72px;
+  gap: 12px;
+}
+
+.answer-btn {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--btn);
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.answer-btn:active {
+  transform: scale(0.96);
+  background: var(--btn-pressed);
+}
+
+.answer-btn.correct {
+  background: var(--correct);
+  color: #fff;
+}
+
+.answer-btn.wrong {
+  background: var(--wrong);
+  color: #fff;
+}
+
+/* =========================================================
+   ОКНО КОНЦА БОЯ
+   ========================================================= */
+#overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+#overlay-box {
+  text-align: center;
+  padding: 24px;
+}
+
+#overlay-title {
+  font-size: 40px;
+  font-weight: 800;
+  margin-bottom: 12px;
+}
+
+#overlay-stars {
+  font-size: 44px;
+  letter-spacing: 6px;
+  margin-bottom: 12px;
+  min-height: 10px;
+}
+
+#overlay-text {
+  font-size: 16px;
+  color: var(--text-dim);
+  margin: 0 auto 24px;
+  max-width: 280px;
+  line-height: 1.4;
+}
+
+#restart-btn {
+  display: block;
+  margin: 0 auto;
+  font-size: 20px;
+  font-weight: 700;
+  padding: 16px 32px;
+  border: none;
+  border-radius: 14px;
+  background: var(--accent);
+  color: var(--accent-text);
+  cursor: pointer;
+}
+
+#restart-btn:active {
+  transform: scale(0.96);
+}
+
+#menu-btn {
+  display: block;
+  margin: 12px auto 0;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 16px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* =========================================================
+   ЭКРАН НАБОРОВ, ПЕРЕКЛЮЧАТЕЛЬ РЕЖИМА, КНОПКА "НАЗАД" НА КАРТЕ
+   ========================================================= */
+#sets-screen {
+  padding: calc(24px + env(safe-area-inset-top)) 16px
+           calc(16px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  overflow-y: auto;
+}
+
+#sets-title {
+  font-size: 34px;
+  font-weight: 800;
+}
+
+/* Переключатель режима */
+#mode-toggle {
+  display: flex;
+  width: 100%;
+  background: var(--hp-track);
+  border-radius: 14px;
+  padding: 4px;
+  gap: 4px;
+}
+
+.mode-btn {
+  flex: 1;
+  padding: 12px 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-dim);
+  background: none;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.mode-btn.active {
+  background: var(--btn);
+  color: var(--text);
+}
+
+/* Карточки наборов */
+#sets-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.set-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  text-align: left;
+  color: var(--text);
+  background: var(--btn);
+  border: 2px solid transparent;
+  border-radius: 16px;
+  cursor: pointer;
+}
+
+.set-card:not(.locked):active {
+  transform: scale(0.98);
+}
+
+.set-card.locked {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.set-icon {
+  font-size: 36px;
+  line-height: 1;
+}
+
+.set-info {
+  flex: 1;
+}
+
+.set-name {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.set-progress {
+  font-size: 14px;
+  color: var(--text-dim);
+  margin-top: 4px;
+}
+
+/* Карта уровней: кнопка назад */
+#map-back-btn {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 15px;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* =========================================================
+   ВЫБОР НОВОЙ ТЕМЫ
+   ========================================================= */
+.offer-title {
+  width: 100%;
+  margin-top: 8px;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--accent);
+  text-align: left;
+}
+
+.offer-sub {
+  width: 100%;
+  margin-top: -6px;
+  font-size: 13px;
+  color: var(--text-dim);
+  text-align: left;
+}
+
+.set-card.offer {
+  border-color: var(--accent);
+}
+
+.offer-hint {
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--hp-track);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-dim);
+  text-align: center;
+}
+
+/* =========================================================
+   ЭТАПЫ, БОСС, КАРТА 4x2
+   ========================================================= */
+:root {
+  --boss: #ff4d6d;   /* цвет рамки босса */
+}
+
+/* Вкладки этапов */
+#stage-tabs {
+  width: 100%;
+  display: flex;
+  gap: 8px;
+}
+
+.stage-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 4px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-dim);
+  background: var(--hp-track);
+  border: 2px solid transparent;
+  border-radius: 14px;
+  cursor: pointer;
+}
+
+.stage-tab .tab-icon {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.stage-tab.active {
+  background: var(--btn);
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.stage-tab.locked {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* Сетка боёв: 4 колонки, 7 уровней + босс = 2 ровных ряда */
+#levels-grid {
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.level-btn {
+  padding: 12px 0;
+}
+
+.level-num {
+  font-size: 24px;
+}
+
+.level-stars {
+  font-size: 15px;
+  letter-spacing: 1px;
+}
+
+.level-btn.boss {
+  border-color: var(--boss);
+}
+
+.level-btn.boss .level-num {
+  font-size: 26px;
+}
+
+/* Заглушка для этапов, которых ещё нет */
+.stage-soon {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 28px 12px;
+  line-height: 1.6;
+  color: var(--text-dim);
+}
+
+/* =========================================================
+   ВЫБОР НОВОЙ ТЕМЫ И ПОДПИСЬ О ЗАКРЫТЫХ ТЕМАХ
+   ========================================================= */
+.offer-box {
+  width: 100%;
+  padding: 16px;
+  background: var(--hp-track);
+  border: 2px solid var(--accent);
+  border-radius: 16px;
+}
+
+.offer-title {
+  font-size: 20px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.offer-sub {
+  font-size: 14px;
+  color: var(--text-dim);
+  text-align: center;
+  margin: 4px 0 14px;
+}
+
+.offer-row {
+  display: flex;
+  flex-direction: column;   /* одна тема под другой */
+  gap: 12px;
+}
+
+.offer-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 16px;
+  text-align: left;
+  color: var(--text);
+  background: var(--btn);
+  border: none;
+  border-radius: 16px;
+  cursor: pointer;
+}
+
+.offer-card:active {
+  transform: scale(0.98);
+}
+
+.offer-icon {
+  font-size: 44px;
+  line-height: 1;
+}
+
+.offer-info {
+  flex: 1;
+}
+
+.offer-name {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.offer-count {
+  font-size: 14px;
+  color: var(--text-dim);
+  margin-top: 4px;
+}
+
+.locked-info {
+  width: 100%;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-dim);
+  padding: 4px 8px;
+}
+
+/* =========================================================
+   ПРОГРЕСС ЗАУЧИВАНИЯ СЛОВ
+   ========================================================= */
+#progress-box {
+  width: 100%;
+  padding: 14px;
+  background: var(--hp-track);
+  border-radius: 14px;
+}
+
+.progress-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+
+.progress-title {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.progress-sub {
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.progress-track {
+  height: 10px;
+  background: var(--bg);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--hp-player-1), var(--hp-player-2));
+  border-radius: 5px;
+  transition: width 0.4s ease;
+}
+
+#words-toggle {
+  display: block;
+  margin: 12px auto 0;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 14px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.words-list {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.word-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 15px;
+}
+
+.word-row .word-text b {
+  color: var(--text);
+}
+
+.word-row .word-text {
+  color: var(--text-dim);
+}
+
+.word-row.learned .word-text b {
+  color: var(--correct);
+}
+
+.word-marks {
+  display: flex;
+  gap: 6px;
+  white-space: nowrap;
+  font-size: 16px;
+}
+
+.word-marks .mark.on  { opacity: 1; }
+.word-marks .mark.off { opacity: 0.25; filter: grayscale(1); }
+.word-marks .streak {
+  font-size: 12px;
+  color: var(--text-dim);
+  align-self: center;
+}
+
+/* =========================================================
+   ЭТАП "СБОРКА СЛОВА"
+   ========================================================= */
+#question-word.long {
+  font-size: 30px;   /* длинные слова и фразы уменьшаются */
+}
+
+#build-area {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Ячейки для букв */
+#slots {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: center;
+  gap: 5px;
+  min-height: 46px;
+}
+
+.slot {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 36px;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 700;
+  text-transform: uppercase;
+  background: var(--hp-track);
+  border-bottom: 3px solid var(--text-dim);
+  border-radius: 8px 8px 4px 4px;
+  cursor: pointer;
+}
+
+.slot.filled {
+  background: var(--btn);
+  border-bottom-color: var(--accent);
+}
+
+.slot.space {
+  flex: 0 0 12px;
+  background: none;
+  border: none;
+  cursor: default;
+}
+
+#slots.correct .slot:not(.space) {
+  background: var(--correct);
+  border-bottom-color: transparent;
+  color: #fff;
+}
+
+#slots.wrong .slot:not(.space) {
+  background: var(--wrong);
+  border-bottom-color: transparent;
+  color: #fff;
+}
+
+/* Буквы для выбора */
+#tiles {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.tile {
+  width: 46px;
+  height: 50px;
+  font-size: 22px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text);
+  background: var(--btn);
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.tile:active {
+  transform: scale(0.93);
+  background: var(--btn-pressed);
+}
+
+.tile.used {
+  opacity: 0.15;
+  pointer-events: none;
+}
+
+.tile.erase {
+  background: var(--hp-track);
+  color: var(--text-dim);
+}
+
+/* =========================================================
+   ЭТАП "ВВОД ВРУЧНУЮ"
+   ========================================================= */
+#type-area {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+#type-hint {
+  min-height: 28px;
+  text-align: center;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: var(--text-dim);
+}
+
+#type-row {
+  display: flex;
+  gap: 10px;
+}
+
+#type-input {
+  flex: 1;
+  min-width: 0;
+  height: 56px;
+  padding: 0 16px;
+  font-size: 22px;   /* не меньше 16px, иначе iPhone приближает страницу */
+  font-weight: 600;
+  color: var(--text);
+  background: var(--btn);
+  border: 3px solid transparent;
+  border-radius: 14px;
+  outline: none;
+}
+
+#type-input:focus {
+  border-color: var(--accent);
+}
+
+#type-input.correct {
+  background: var(--correct);
+  border-color: var(--correct);
+  color: #fff;
+}
+
+#type-input.wrong {
+  background: var(--wrong);
+  border-color: var(--wrong);
+  color: #fff;
+}
+
+#type-submit {
+  width: 72px;
+  height: 56px;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--accent-text);
+  background: var(--accent);
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+}
+
+/* Компактная раскладка, пока открыта клавиатура */
+#game.typing {
+  padding-bottom: 8px;
+}
+
+#game.typing #arena {
+  flex: 0 0 auto;
+}
+
+#game.typing .character {
+  flex: none;
+  margin-top: 6px;
+  font-size: 44px;
+}
+
+#game.typing #panel {
+  flex: 1;
+  gap: 8px;
+}
+
+#game.typing #question-word {
+  font-size: 32px;
+}
+
+#game.typing #question-area {
+  gap: 2px;
+}
+
+/* Карточка режима "Повторение" */
+.set-card.review-card {
+  border-color: var(--accent);
+}

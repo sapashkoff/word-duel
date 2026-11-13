@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Word Duel</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="theme-color" content="#1b1b2f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Word Duel">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ЭКРАН 1: НАБОРЫ СЛОВ -->
+  <div id="sets-screen" class="screen hidden">
+    <div id="sets-title">Word Duel</div>
+
+    <div id="mode-toggle">
+      <button class="mode-btn" data-mode="en-ru">EN → RU</button>
+      <button class="mode-btn" data-mode="ru-en">RU → EN</button>
+    </div>
+
+    <div id="sets-list"></div>
+    <button id="reset-btn">Сбросить прогресс</button>
+    <div style="font-size:12px;color:var(--text-dim);">версия 1</div>
+  </div>
+
+  <!-- ЭКРАН 2: КАРТА УРОВНЕЙ НАБОРА -->
+  <div id="map-screen" class="screen hidden">
+    <button id="map-back-btn">← Наборы</button>
+    <div id="map-title"></div>
+    <div id="map-subtitle"></div>
+    <div id="stage-tabs"></div>
+    <div id="progress-box"></div>
+    <div id="levels-grid"></div>
+    <div id="weak-words"></div>
+  </div>
+
+  <!-- ЭКРАН 3: БОЙ -->
+  <div id="game" class="screen hidden">
+
+    <div id="topbar">
+      <button id="back-btn">← Карта</button>
+      <div id="level-label"></div>
+    </div>
+
+    <section id="arena">
+      <div class="fighter">
+        <div class="fighter-name">Ты</div>
+        <div class="hp-bar"><div class="hp-fill" id="player-hp"></div></div>
+        <div class="character" id="player-char">🧙</div>
+      </div>
+
+      <div class="vs">VS</div>
+
+      <div class="fighter">
+        <div class="fighter-name" id="enemy-name">Противник</div>
+        <div class="hp-bar"><div class="hp-fill" id="enemy-hp"></div></div>
+        <div class="character" id="enemy-char">👹</div>
+      </div>
+    </section>
+
+    <section id="panel">
+      <div id="question-area">
+        <div id="mode-label"></div>
+        <div id="question-word"></div>
+        <div id="status"></div>
+        <div id="timer-bar"><div id="timer-fill"></div></div>
+      </div>
+
+      <!-- Этап "Выбор": 4 варианта -->
+      <div id="answers">
+        <button class="answer-btn"></button>
+        <button class="answer-btn"></button>
+        <button class="answer-btn"></button>
+        <button class="answer-btn"></button>
+      </div>
+
+      <!-- Этап "Сборка": буквы -->
+      <div id="build-area" class="hidden">
+        <div id="slots"></div>
+        <div id="tiles"></div>
+      </div>
+
+      <!-- Этап "Ввод": поле ввода -->
+      <div id="type-area" class="hidden">
+        <div id="type-hint"></div>
+        <div id="type-row">
+          <input id="type-input" type="text" autocomplete="off" autocorrect="off"
+                 autocapitalize="off" spellcheck="false" enterkeyhint="go"
+                 placeholder="Введи слово">
+          <button id="type-submit">OK</button>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Окно конца боя (поверх экрана боя) -->
+  <div id="overlay" class="hidden">
+    <div id="overlay-box">
+      <div id="overlay-title"></div>
+      <div id="overlay-stars"></div>
+      <div id="overlay-text"></div>
+      <button id="restart-btn"></button>
+      <button id="menu-btn">К уровням</button>
+    </div>
+  </div>
+
+  <script src="js/words.js"></script>
+  <script src="js/app.js"></script>
+    <script>
+    // Офлайн-режим включается только на настоящем сайте (https), а не при разработке
+    if ("serviceWorker" in navigator && location.protocol === "https:") {
+      window.addEventListener("load", () => navigator.serviceWorker.register("sw.js"));
+    }
+  </script>
+</body>
+</html>
